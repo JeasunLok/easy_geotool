@@ -2,8 +2,8 @@ import numpy as np
 import rasterio
 
 # read tif
-def read_tif(path):
-    with rasterio.open(path) as dataset:
+def read_tif(file_path):
+    with rasterio.open(file_path) as dataset:
         im_data = dataset.read()  
         if len(im_data) == 2:  
             im_data = im_data[np.newaxis, :, :]  
@@ -15,7 +15,7 @@ def read_tif(path):
 
 
 # write tif
-def write_tif(newpath, im_data, im_geotrans, im_proj):
+def write_tif(file_path, im_data, im_geotrans, im_proj):
     if len(im_data) == 2:  
         im_data = im_data[np.newaxis, :, :]  
     bands = im_data.shape[0]
@@ -23,7 +23,7 @@ def write_tif(newpath, im_data, im_geotrans, im_proj):
     width = im_data.shape[2]
     datatype = im_data.dtype 
 
-    with rasterio.open(newpath, 'w', driver='GTiff', height=height, 
+    with rasterio.open(file_path, 'w', driver='GTiff', height=height, 
                        width=width, count=bands, 
                        dtype=datatype, crs=im_proj, transform=im_geotrans) as new_dataset:
         for i in range(bands):
