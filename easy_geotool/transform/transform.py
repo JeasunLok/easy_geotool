@@ -3,6 +3,7 @@ import rasterio
 from rasterio.features import rasterize
 from rasterio.transform import from_bounds
 from pyproj import CRS
+from shapely.geometry import Point
 
 def vector_to_raster(vector_path, raster_path, pixel_size=10, mode="constant", fill_value=0, burn_value=1, field_name=None):
     """
@@ -69,3 +70,47 @@ def vector_to_raster(vector_path, raster_path, pixel_size=10, mode="constant", f
         dst.write(raster_data, 1)
 
     print(f"矢量数据已成功转换为栅格数据并保存到 {raster_path}")
+
+def raster_to_points(raster_path, output_path=None, output_format="shp"):
+    """
+    将栅格文件转换为点数据并返回GeoDataFrame，选择性保存为文件。
+    
+    参数:
+    - raster_path: str，栅格文件路径
+    - output_path: str，可选，输出文件路径（例如 "output.geojson" 或 "output.shp"）
+    - output_format: str，可选，保存格式（默认为 "GeoJSON"；也可选择 "ESRI Shapefile" 等其他格式）
+
+    """
+    # 读取栅格数据
+    with rasterio.open(raster_path) as src:
+        raster_data = src.read(1)  # 读取栅格的第一个波段
+        transform = src.transform  # 获取仿射变换，用于坐标计算
+        nodata = src.nodata  # 获取无效数据值（NODATA）
+
+    # 创建空列表存储点和栅格值
+    points = []
+    values = []
+
+    # 遍历栅格的每个像元
+    for row in range(raster_data.shape[0]):
+        for col in range(raster_data.shape[1]):
+            value = raster_data[row, col]
+            
+            # 排除无效数据
+            if value != nodata:
+                # 计算像元的地理坐标
+                x, y = rasterio.transform.xy(transform, row, col, offset='center')
+                # 创建点几何并存储
+                points.append(Point(x, y))
+                values.append(value)
+
+    # 创建GeoDataFrame
+    gdf = gpd.GeoDataFrame({'value': values, 'geometry': points}, crs=src.crs)
+
+    # 保存到文件（可选）
+    if output_path:
+        if output_format == "shp":
+            gdf.to_file(output_path, driver="ESRI Shapefile")
+        elif output_format == "geojson":
+            gdf.to_file(output_path, driver="GeoJSON")
+        print(f"点数据已保存到 {output_path}.")
