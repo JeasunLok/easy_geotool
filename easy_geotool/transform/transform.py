@@ -6,7 +6,7 @@ from pyproj import CRS
 from shapely.geometry import Point, shape, MultiLineString, LineString
 import numpy as np
 
-def vector_to_raster(vector_path, raster_path, pixel_size=10, epsg=3857, mode="constant", fill_value=0, burn_value=1, field_name=None):
+def vector_to_raster(vector_path, output_path=None, pixel_size=10, epsg=3857, mode="constant", fill_value=0, burn_value=1, field_name=None):
     """
     Converts vector data to raster data, supporting coordinate system transformation to ensure meter resolution,
     and sets raster values based on the selected mode.
@@ -71,20 +71,21 @@ def vector_to_raster(vector_path, raster_path, pixel_size=10, epsg=3857, mode="c
     )
 
     # Save the raster file, using the original vector coordinate system
-    with rasterio.open(
-        raster_path,
-        'w',
-        driver='GTiff',
-        height=height,
-        width=width,
-        count=1,
-        dtype=raster_data.dtype,
-        crs=crs,  # Retain original coordinate system
-        transform=transform
-    ) as dst:
-        dst.write(raster_data, 1)
+    if output_path:
+        with rasterio.open(
+            output_path,
+            'w',
+            driver='GTiff',
+            height=height,
+            width=width,
+            count=1,
+            dtype=raster_data.dtype,
+            crs=crs,  # Retain original coordinate system
+            transform=transform
+        ) as dst:
+            dst.write(raster_data, 1)
 
-    print(f"Vector data successfully converted to raster data and saved to {raster_path}")
+        print(f"Vector data successfully converted to raster data and saved to {output_path}")
 
 def raster_to_points(raster_path, output_path=None, band=1, value_name="value", output_format="shp"):
     """
