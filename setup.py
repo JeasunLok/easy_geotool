@@ -2,10 +2,10 @@ from setuptools import setup, find_packages
 
 setup(
     name="easy_geotool",
-    version="0.1.0",
+    version="0.1.1",
     author="JeasunLok",
     author_email="luojsh7@mail2.sysu.edu.cn",
-    description="An easy geographic information processing tool",
+    description="An easy geospatial data processing tool",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/JeasunLok/easy_geotool",
